@@ -8,11 +8,11 @@ from satellite_enhancer.model.vgg_feature import VGGFeature
 
 class Generator(tf.keras.Model):
 
-    def __init__(self, vgg_output_layer=20):
+    def __init__(self):
         super(Generator, self).__init__(self)
 
         # TODO: understand better why to use VGG convolution feature?
-        self.vgg_feature = VGGFeature().output_layer(vgg_output_layer)
+        self.vgg_feature = VGGFeature().output_layer()
 
         # generator structure
         self.conv_1 = tf.keras.layers.Conv2D(64, kernel_size=9, strides=1, padding='same',
@@ -27,6 +27,10 @@ class Generator(tf.keras.Model):
         self.upsample_blocks = list(map(lambda x: UpsampleBlock(), range(2)))
 
         self.conv_3 = tf.keras.layers.Conv2D(filters=3, kernel_size=9, strides=1, padding="same", activation='tanh')
+
+        # loss
+        self.binary_crossentropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
+        self.mse = MeanSquaredError()
 
     def call(self, inputs, training=True):
         """
@@ -82,18 +86,18 @@ class Generator(tf.keras.Model):
         return perc_loss
 
     def generator_loss(self, sr):
-        return tf.keras.losses.BinaryCrossentropy(from_logits=False)(tf.ones_like(sr), sr)
+        return self.binary_crossentropy(tf.ones_like(sr), sr)
 
     def content_loss(self, hr, sr):
 
-        sr = preprocess_input(sr)
-        hr = preprocess_input(hr)
+        # sr = preprocess_input(sr, mode='tf')
+        # hr = preprocess_input(hr, mode='tf')
 
         # TODO: why 12.75?
         sr_features = self.vgg_feature(sr) / 12.75
         hr_features = self.vgg_feature(hr) / 12.75
 
-        return MeanSquaredError()(hr_features, sr_features)
+        return self.mse(hr_features, sr_features)
 
 
 

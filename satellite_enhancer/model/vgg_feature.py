@@ -12,9 +12,10 @@ class VGGFeature:
         for layer in self.vgg.layers:
             layer.trainable = False
 
-    def output_layer(self, output_layer):
+    def output_layer(self, output_layer='block5_conv4'):
 
-        loss_model = tf.keras.Model(inputs=self.vgg.input, outputs=self.vgg.layers[output_layer].output)
+        loss_model = tf.keras.Model(inputs=self.vgg.input,
+                                    outputs=self.vgg.get_layer(output_layer).output)
         loss_model.trainable = False
 
         return loss_model
