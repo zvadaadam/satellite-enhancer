@@ -14,6 +14,20 @@ class Generator(tf.keras.Model):
         # TODO: understand better why to use VGG convolution feature?
         self.vgg_feature = VGGFeature().output_layer(vgg_output_layer)
 
+        # generator structure
+        self.conv_1 = tf.keras.layers.Conv2D(64, kernel_size=9, strides=1, padding='same',
+                                             kernel_initializer=tf.random_normal_initializer(stddev=0.02))
+        self.prelu_1 = tf.keras.layers.PReLU(alpha_initializer='zeros', shared_axes=[1, 2])
+
+        self.res_blocks = list(map(lambda x: ResidualBlock(), range(16)))
+
+        self.conv_2 = tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=1, padding="same")
+        self.bn_1 = tf.keras.layers.BatchNormalization(momentum=0.5)
+
+        self.upsample_blocks = list(map(lambda x: UpsampleBlock(), range(2)))
+
+        self.conv_3 = tf.keras.layers.Conv2D(filters=3, kernel_size=9, strides=1, padding="same", activation='tanh')
+
     def call(self, inputs, training=True):
         """
         Build the Generator model
@@ -22,37 +36,35 @@ class Generator(tf.keras.Model):
         :return: x
         """
 
-        print(inputs.shape)
-        x = tf.keras.layers.Conv2D(64, kernel_size=9, strides=1, padding='same',
-                                   kernel_initializer=tf.random_normal_initializer(stddev=0.02))(inputs)
+        print(f'Input: {inputs.shape}')
 
-        x = tf.keras.layers.PReLU(alpha_initializer='zeros', shared_axes=[1, 2])(x)
+        x = self.conv_1(inputs)
+        x = self.prelu_1(x)
         print(x.shape)
 
         skip_res_x = x
 
-        for i in range(16):
-            x = ResidualBlock()(x, training)
+        for i, res_block in enumerate(self.res_blocks):
+            x = res_block(x, training)
             print(f'Res_{i}: {x.shape}')
 
-        x = tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=1, padding="same")(x)
-        x = tf.keras.layers.BatchNormalization(momentum=0.5)(x)
+        x = self.conv_2(x)
+        x = self.bn_1(x)
 
         x = tf.keras.layers.add([x, skip_res_x])
         print(x.shape)
 
         # Using 2 UpSampling Blocks
-        for i in range(2):
-            x = UpsampleBlock()(x, 256)
+        for upsample_block in self.upsample_blocks:
+            x = upsample_block(x, 256)
             print(f'Upscale_{i}: {x.shape}')
 
-        x = tf.keras.layers.Conv2D(filters=3, kernel_size=9, strides=1, padding="same", activation='tanh')(x)
+        x = self.conv_3(x)
 
         print(f'Finale: {x.shape}')
 
         return x
 
-    @tf.function
     def loss(self, hr, sr, sr_output):
         """
         Perceptual loss
@@ -69,11 +81,9 @@ class Generator(tf.keras.Model):
 
         return perc_loss
 
-    @tf.function
     def generator_loss(self, sr):
         return tf.keras.losses.BinaryCrossentropy(from_logits=False)(tf.ones_like(sr), sr)
 
-    @tf.function
     def content_loss(self, hr, sr):
 
         sr = preprocess_input(sr)

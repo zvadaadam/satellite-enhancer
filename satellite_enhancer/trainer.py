@@ -20,8 +20,6 @@ class Trainer(object):
 
             print(f'{step}/{num_steps}, perceptual loss = {pl:.3f}, discriminator loss = {dl:.3f}')
 
-
-    @tf.function
     def train_step(self, lr, hr):
 
         generator_optimizer = tf.keras.optimizers.Adam(0.001)
@@ -49,8 +47,8 @@ class Trainer(object):
 
         return perc_loss, disc_loss
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
 
     import matplotlib.pyplot as plt
 
