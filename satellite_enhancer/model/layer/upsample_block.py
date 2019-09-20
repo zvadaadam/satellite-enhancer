@@ -9,7 +9,14 @@ class UpsampleBlock(tf.keras.Model):
     def call(self, inputs, num_filters=256):
 
         x = tf.keras.layers.Conv2D(filters=num_filters, kernel_size=3, strides=1, padding="same")(inputs)
-        x = tf.keras.layers.UpSampling2D(size=2)(x)
-        x = tf.keras.layers.LeakyReLU(alpha=0.2)(x)
+
+        #x = tf.keras.layers.UpSampling2D(size=2)(x)
+        x = tf.keras.layers.Lambda(self.pixel_shuffle(scale=2))(x)
+
+        #x = tf.keras.layers.LeakyReLU(alpha=0.2)(x)
+        x = tf.keras.layers.PReLU(shared_axes=[1, 2])(x)
 
         return x
+
+    def pixel_shuffle(self, scale):
+        return lambda x: tf.nn.depth_to_space(x, scale)

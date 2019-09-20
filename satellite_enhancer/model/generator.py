@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.applications.vgg19 import preprocess_input
+from tensorflow.keras.losses import MeanSquaredError
 from satellite_enhancer.model.layer.residual_block import ResidualBlock
 from satellite_enhancer.model.layer.upsample_block import UpsampleBlock
 from satellite_enhancer.model.vgg_feature import VGGFeature
@@ -22,8 +23,8 @@ class Generator(tf.keras.Model):
         """
 
         print(inputs.shape)
-        x = tf.keras.layers.Conv2D(64, kernel_size=9, strides=1,
-                                      kernel_initializer=tf.random_normal_initializer(stddev=0.02))(inputs)
+        x = tf.keras.layers.Conv2D(64, kernel_size=9, strides=1, padding='same',
+                                   kernel_initializer=tf.random_normal_initializer(stddev=0.02))(inputs)
 
         x = tf.keras.layers.PReLU(alpha_initializer='zeros', shared_axes=[1, 2])(x)
         print(x.shape)
@@ -34,17 +35,20 @@ class Generator(tf.keras.Model):
             x = ResidualBlock()(x, training)
             print(f'Res_{i}: {x.shape}')
 
-
         x = tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=1, padding="same")(x)
         x = tf.keras.layers.BatchNormalization(momentum=0.5)(x)
 
         x = tf.keras.layers.add([x, skip_res_x])
+        print(x.shape)
 
         # Using 2 UpSampling Blocks
         for i in range(2):
-            x = UpsampleBlock()(x, 64)
+            x = UpsampleBlock()(x, 256)
+            print(f'Upscale_{i}: {x.shape}')
 
         x = tf.keras.layers.Conv2D(filters=3, kernel_size=9, strides=1, padding="same", activation='tanh')(x)
+
+        print(f'Finale: {x.shape}')
 
         return x
 
@@ -79,8 +83,7 @@ class Generator(tf.keras.Model):
         sr_features = self.vgg_feature(sr) / 12.75
         hr_features = self.vgg_feature(hr) / 12.75
 
-        return tf.keras.losses.MeanSquaredError()(hr_features, sr_features)
-
+        return MeanSquaredError()(hr_features, sr_features)
 
 
 

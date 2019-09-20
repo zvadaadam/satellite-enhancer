@@ -55,7 +55,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     from satellite_enhancer.dataset.divk2_dataset import DIV2K
-    div2k_train = DIV2K(scale=2, subset='train', downgrade='bicubic')
+    div2k_train = DIV2K(scale=4, subset='train', downgrade='bicubic')
 
     train_ds = div2k_train.dataset(batch_size=16, random_transform=True)
 
