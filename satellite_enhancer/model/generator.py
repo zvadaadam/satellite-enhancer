@@ -1,6 +1,5 @@
 import tensorflow as tf
 from tensorflow.keras.applications.vgg19 import preprocess_input
-from tensorflow.keras.losses import MeanSquaredError
 from satellite_enhancer.model.layer.residual_block import ResidualBlock
 from satellite_enhancer.model.layer.upsample_block import UpsampleBlock
 from satellite_enhancer.model.vgg_feature import VGGFeature
@@ -14,7 +13,6 @@ class Generator(tf.keras.Model):
         # TODO: understand better why to use VGG convolution feature?
         self.vgg_feature = VGGFeature().output_layer(vgg_output_layer)
 
-    @tf.function
     def call(self, inputs, training=True):
         """
         Build the Generator model
@@ -28,11 +26,14 @@ class Generator(tf.keras.Model):
                                       kernel_initializer=tf.random_normal_initializer(stddev=0.02))(inputs)
 
         x = tf.keras.layers.PReLU(alpha_initializer='zeros', shared_axes=[1, 2])(x)
+        print(x.shape)
 
         skip_res_x = x
 
         for i in range(16):
             x = ResidualBlock()(x, training)
+            print(f'Res_{i}: {x.shape}')
+
 
         x = tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=1, padding="same")(x)
         x = tf.keras.layers.BatchNormalization(momentum=0.5)(x)

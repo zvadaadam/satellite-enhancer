@@ -172,6 +172,7 @@ venv.bak/
 .mypy_cache/
 
 satellite_enhancer/.div2k/
-satellite_enhancer/.div2k/
+
 .idea
+
 */.div2k
