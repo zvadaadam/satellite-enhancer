@@ -35,21 +35,22 @@ class Trainer(object):
     def train(self, train_dataset, num_epochs=100):
 
         with self.summary_writer.as_default():
-            step = 0
+
             for epoch in range(num_epochs):
                 pl, dl = 0, 0
+                num_setps = 0
                 for lr, hr in train_dataset.take(1):
-                    print(f'STEP: {step}')
+                    print(f'EPOCHE: {epoch}')
 
-                    step += 1
+                    num_setps += 1
 
                     p_l, d_l = self.train_step(lr, hr)
                     pl += p_l
                     dl += d_l
 
                 # tensorboard
-                tf.summary.scalar('perceptual_loss', pl/step, step=self.generator_optimizer.iterations)
-                tf.summary.scalar('discriminator_loss', dl/step, step=self.discriminator_optimizer.iterations)
+                tf.summary.scalar('perceptual_loss', pl/num_setps, step=self.generator_optimizer.iterations)
+                tf.summary.scalar('discriminator_loss', dl/num_setps, step=self.discriminator_optimizer.iterations)
 
                 print(f'{epoch}/{num_epochs}, perceptual loss = {pl:.3f}, discriminator loss = {dl:.3f}')
 
