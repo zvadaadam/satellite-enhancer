@@ -18,17 +18,20 @@ class Generator(tf.keras.Model):
         # generator structure
         self.conv_1 = tf.keras.layers.Conv2D(64, kernel_size=9, strides=1, padding='same', name='conv_1',
                                              kernel_initializer=tf.random_normal_initializer(stddev=0.02))
+
         self.prelu_1 = tf.keras.layers.PReLU(alpha_initializer='zeros', shared_axes=[1, 2], name='prelu_1')
 
         self.res_blocks = list(map(lambda x: ResidualBlock(name=f'residual_{x}'), range(16)))
 
-        self.conv_2 = tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=1, padding='same', name='conv_2')
+        self.conv_2 = tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=1, padding='same', name='conv_2',
+                                             kernel_initializer=tf.random_normal_initializer(stddev=0.02))
+
         self.bn_1 = tf.keras.layers.BatchNormalization(momentum=0.8, name='bn_1',)
 
         self.upsample_blocks = list(map(lambda x: UpsampleBlock(num_filters=256, name=f'upsample_{x}'), range(2)))
 
-        self.conv_3 = tf.keras.layers.Conv2D(filters=3, kernel_size=9, strides=1, padding="same", activation='tanh',
-                                             name='conv_3')
+        self.conv_3 = tf.keras.layers.Conv2D(filters=3, kernel_size=9, strides=1, padding="same", activation='tanh', name='conv_3',
+                                             kernel_initializer=tf.random_normal_initializer(stddev=0.02))
 
         # loss
         self.binary_crossentropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
@@ -139,3 +142,21 @@ class Generator(tf.keras.Model):
         hr_features = self.vgg_feature(hr)
 
         return self.mse(hr_features, sr_features) / 12.75
+
+    # def cMSE(hr, sr):
+    #
+    #     # apply the quality mask
+    #     obs = tf.equal(hr, 0.05)
+    #     clr = tf.math.logical_not(obs)
+    #     _hr = tf.boolean_mask(hr, clr)
+    #     _sr = tf.boolean_mask(sr, clr)
+    #
+    #     # calculate the bias in brightness b
+    #     pixel_diff = _hr - _sr
+    #     b = K.mean(pixel_diff)
+    #
+    #     # calculate the corrected clear mean-square error
+    #     pixel_diff -= b
+    #     cMse = K.mean(pixel_diff * pixel_diff)
+    #
+    #     return cMse

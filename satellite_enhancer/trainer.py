@@ -63,11 +63,11 @@ class Trainer(object):
 
             sr = self.generator(lr, training=True)
 
-            plt.imshow(hr[0])
+            plt.imshow(self.denormalize(hr[0]))
             plt.show()
-            plt.imshow(lr[0])
-            plt.show()
-            plt.imshow(sr[0])
+            # plt.imshow(self.denormalize(lr[0]))
+            # plt.show()
+            plt.imshow(self.denormalize(sr[0]))
             plt.show()
 
             hr_output = self.discriminator(hr, training=True)
@@ -93,6 +93,9 @@ class Trainer(object):
 
         return perc_loss, disc_loss
 
+    def flip_labels(self, label, prob=0.05):
+        pass
+
     def normalize(sel, img):
         """Normalize image to [-1,1]"""
 
@@ -102,8 +105,8 @@ class Trainer(object):
         return img
 
     def denormalize(self, img):
-        return ((img + 1) * 127.5).astype(np.uint8)
-
+        # return tf.divide(tf.add(img, 1), 2.)
+        return tf.cast(tf.multiply(tf.add(img, 1), 127.5), dtype=tf.uint32)
 
 if __name__ == '__main__':
 

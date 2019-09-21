@@ -6,15 +6,15 @@ class ResidualBlock(tf.keras.layers.Layer):
     def __init__(self, name='residual'):
         super(ResidualBlock, self).__init__(name)
 
-        self.conv_1 = tf.keras.layers.Conv2D(64, kernel_size=3, strides=1, padding='same')
-                                             #kernel_initializer=tf.random_normal_initializer(stddev=0.02))
+        self.conv_1 = tf.keras.layers.Conv2D(64, kernel_size=3, strides=1, padding='same',
+                                             kernel_initializer=tf.random_normal_initializer(stddev=0.02))
 
         self.bn_1 = tf.keras.layers.BatchNormalization(momentum=0.8)
 
         self.prelu_1 = tf.keras.layers.PReLU(shared_axes=[1, 2])
 
-        self.conv_2 = tf.keras.layers.Conv2D(64, kernel_size=3, strides=1, padding='same')
-                                             #kernel_initializer=tf.random_normal_initializer(stddev=0.02))
+        self.conv_2 = tf.keras.layers.Conv2D(64, kernel_size=3, strides=1, padding='same',
+                                             kernel_initializer=tf.random_normal_initializer(stddev=0.02))
 
         self.bn_2 = tf.keras.layers.BatchNormalization(momentum=0.8)
 

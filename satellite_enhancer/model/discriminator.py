@@ -9,8 +9,9 @@ class Discriminator(tf.keras.Model):
 
         self.num_filters = 64
 
-        self.conv_1 = tf.keras.layers.Conv2D(self.num_filters, kernel_size=3, strides=1, padding='same', name='conv_1')
-                                             #kernel_initializer=tf.random_normal_initializer(stddev=0.02))
+        # Gaussian init with mean 0 and std 0.02 is good for GANS
+        self.conv_1 = tf.keras.layers.Conv2D(self.num_filters, kernel_size=3, strides=1, padding='same', name='conv_1',
+                                             kernel_initializer=tf.random_normal_initializer(stddev=0.02))
 
         self.lrelu_1 = tf.keras.layers.LeakyReLU(alpha=0.2, name='lrelu_1')
 
@@ -27,7 +28,7 @@ class Discriminator(tf.keras.Model):
         self.dense_1 = tf.keras.layers.Dense(self.num_filters * 16, name='dense_1')
         self.lrelu_2 = tf.keras.layers.LeakyReLU(alpha=0.2, name='lrelu_2')
 
-        self.dropout = tf.keras.layers.Dropout(0.4)
+        self.dropout = tf.keras.layers.Dropout(0.5)
 
         self.dense_2 = tf.keras.layers.Dense(1, activation='sigmoid', name='dense_2')
 
@@ -56,7 +57,7 @@ class Discriminator(tf.keras.Model):
         x = self.dense_1(x)
         x = self.lrelu_2(x)
 
-        # One dropout layer - important trick!
+        # One dropout layer - trick!
         x = self.dropout(x)
 
         x = self.dense_2(x)
