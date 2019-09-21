@@ -58,16 +58,24 @@ class Discriminator(tf.keras.Model):
         return x
 
     def loss(self, hr_out, sr_out):
+        """
+        Same
+        :param hr_out:
+        :param sr_out:
+        :return:
+        """
 
-        # discrim_fake_loss = tf.log(1 - discrim_fake_output + FLAGS.EPS)
-        # discrim_real_loss = tf.log(discrim_real_output + FLAGS.EPS)
-        #
-        # discrim_loss = tf.reduce_mean(-(discrim_fake_loss + discrim_real_loss))
+        # EPS = 1e-12
+        # hr_loss = tf.reduce_mean(tf.math.log(hr_out + EPS))
+        # sr_loss = tf.reduce_mean(tf.math.log((1 - sr_out) + EPS))
 
         hr_loss = self.binary_crossentropy(tf.ones_like(hr_out), hr_out)  # log(y_real)
         sr_loss = self.binary_crossentropy(tf.zeros_like(sr_out), sr_out)  # log(1-y_fake)
 
-        return hr_loss + sr_loss
+        print(f'DiscHR: {hr_loss}')
+        print(f'DiscSR: {sr_loss}')
+
+        return sr_loss + hr_loss
 
 
 

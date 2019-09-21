@@ -4,6 +4,7 @@ from tensorflow.keras.losses import MeanSquaredError
 from satellite_enhancer.model.layer.residual_block import ResidualBlock
 from satellite_enhancer.model.layer.upsample_block import UpsampleBlock
 from satellite_enhancer.model.vgg_feature import VGGFeature
+import matplotlib.pyplot as plt
 
 
 class Generator(tf.keras.Model):
@@ -78,29 +79,63 @@ class Generator(tf.keras.Model):
         :return:
         """
         con_loss = self.content_loss(hr, sr)
-        gen_loss = self.generator_loss(sr_output)
+        gen_loss = self.adversarial_loss(sr_output)
+
+        print(f'ContentLoss: {con_loss}')
+        print(f'GenLoss: {con_loss}')
 
         # perceptual loss
         perc_loss = con_loss + 0.001 * gen_loss
 
         return perc_loss
 
-    def generator_loss(self, sr):
-        return self.binary_crossentropy(tf.ones_like(sr), sr)
+    def adversarial_loss(self, disc_sr):
+        EPS = 1e-12
+        # numerical instability
+        advr_loss = tf.reduce_sum(-tf.math.log(disc_sr + EPS))
+
+        test = self.binary_crossentropy(tf.ones_like(disc_sr), disc_sr)
+
+        print(f'AdvrSR: {advr_loss} VS {test}')
+
+        return advr_loss
+
+    def denormalize(self, img):
+        #return tf.divide(tf.add(img, 1), 2.)
+        return tf.cast(tf.cast(tf.multiply(tf.add(img, 1), 127.5), dtype=tf.uint32), dtype=tf.float32)
 
     def content_loss(self, hr, sr):
 
-        # sr = preprocess_input(sr, mode='tf')
-        # hr = preprocess_input(hr, mode='tf')
+        import numpy as np
 
-        # TODO: why 12.75?
-        sr_features = self.vgg_feature(sr) / 12.75
-        hr_features = self.vgg_feature(hr) / 12.75
+        hr = self.denormalize(hr)
+        sr = self.denormalize(sr)
 
-        return self.mse(hr_features, sr_features)
+        # print(np.max(hr[0].numpy()))
+        # print(np.max(sr[0].numpy()))
+        # print(np.min(hr[0].numpy()))
+        # print(np.min(sr[0].numpy()))
+        #
+        # plt.imshow(hr[0])
+        # plt.show()
+        # plt.imshow(sr[0])
+        # plt.show()
+
+        sr = preprocess_input(sr)
+        hr = preprocess_input(hr)
+
+        # plt.imshow(hr[0])
+        # plt.show()
+        # plt.imshow(sr[0])
+        # plt.show()
+        #
+        # print(np.max(hr[0].numpy()))
+        # print(np.max(sr[0].numpy()))
+        # print(np.min(hr[0].numpy()))
+        # print(np.min(sr[0].numpy()))
 
 
+        sr_features = self.vgg_feature(sr)
+        hr_features = self.vgg_feature(hr)
 
-
-
-
+        return self.mse(hr_features, sr_features) / 12.75

@@ -50,13 +50,18 @@ class Trainer(object):
     def train_step(self, lr, hr):
 
         with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-            lr = tf.cast(lr, tf.float32)/255
-            hr = tf.cast(hr, tf.float32)/255
 
-            #plt.imshow(lr.numpy()[0]); plt.show()
-            #plt.imshow(sr.numpy()[0]); plt.show()
+            lr = self.normalize(lr)
+            hr = self.normalize(hr)
 
             sr = self.generator(lr, training=True)
+
+            # plt.imshow(hr[0])
+            # plt.show()
+            # plt.imshow(lr[0])
+            # plt.show()
+            # plt.imshow(sr[0])
+            # plt.show()
 
             hr_output = self.discriminator(hr, training=True)
             sr_output = self.discriminator(sr, training=True)
@@ -82,9 +87,12 @@ class Trainer(object):
         return perc_loss, disc_loss
 
     def normalize(sel, img):
-        """Normalize image to [-1,1]."""
-        n_img = np.divide(img.astype(np.float32), 127.5) - np.ones_like(img, dtype=np.float32)
-        return n_img
+        """Normalize image to [-1,1]"""
+
+        img = tf.cast(img, tf.float32)/127.5 - tf.ones_like(img, dtype=np.float32)
+        #n_img = np.divide(img.astype(np.float32), 127.5) - np.ones_like(img, dtype=np.float32)
+
+        return img
 
     def denormalize(self, img):
         return ((img + 1) * 127.5).astype(np.uint8)
@@ -104,4 +112,4 @@ if __name__ == '__main__':
     #         print(image[0].shape)
     #         print(image[1].shape)
 
-    trainer.train(train_ds, num_steps=100)
+    trainer.train(train_ds, num_steps=10000)

@@ -1,12 +1,12 @@
 import tensorflow as tf
-from tensorflow.python.keras.applications.vgg19 import VGG19
+from tensorflow.keras.applications.vgg19 import VGG19
 
 
 class VGGFeature:
 
     def __init__(self):
         # TODO: need out own trained VGG for satelliate imagery
-        self.vgg = VGG19(input_shape=(None, None, 3), weights='imagenet', include_top=False)
+        self.vgg = VGG19(input_shape=(96, 96, 3), weights='imagenet', include_top=False)
         self.vgg.trainable = False
 
         for layer in self.vgg.layers:
