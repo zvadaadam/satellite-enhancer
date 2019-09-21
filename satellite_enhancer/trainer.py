@@ -13,8 +13,9 @@ class Trainer(object):
         self.generator = generator
         self.discriminator = discriminator
 
-        self.generator_optimizer = tf.keras.optimizers.Adam(0.001)
-        self.discriminator_optimizer = tf.keras.optimizers.Adam(0.001)
+        # discriminator should learn then generator
+        self.generator_optimizer = tf.keras.optimizers.Adam(lr=1e-4, clipvalue=1.0, decay=1e-8)
+        self.discriminator_optimizer = tf.keras.optimizers.Adam(lr=1e-3, clipvalue=1.0, decay=1e-8)
 
         self.summary_writer = tf.summary.create_file_writer(os.path.join('summaries', 'train'))
 
@@ -31,20 +32,26 @@ class Trainer(object):
     def high_level_train(self):
         pass
 
-    def train(self, train_dataset, num_steps=2000):
+    def train(self, train_dataset, num_epochs=100):
 
         with self.summary_writer.as_default():
             step = 0
-            for lr, hr in train_dataset.take(num_steps):
-                step += 1
+            for epoch in range(num_epochs):
+                pl, dl = 0, 0
+                for lr, hr in train_dataset.take(1):
+                    print(f'STEP: {step}')
 
-                pl, dl = self.train_step(lr, hr)
+                    step += 1
+
+                    p_l, d_l = self.train_step(lr, hr)
+                    pl += p_l
+                    dl += d_l
 
                 # tensorboard
-                tf.summary.scalar('perceptual_loss', pl, step=self.generator_optimizer.iterations)
-                tf.summary.scalar('discriminator_loss', dl, step=self.discriminator_optimizer.iterations)
+                tf.summary.scalar('perceptual_loss', pl/step, step=self.generator_optimizer.iterations)
+                tf.summary.scalar('discriminator_loss', dl/step, step=self.discriminator_optimizer.iterations)
 
-                print(f'{step}/{num_steps}, perceptual loss = {pl:.3f}, discriminator loss = {dl:.3f}')
+                print(f'{epoch}/{num_epochs}, perceptual loss = {pl:.3f}, discriminator loss = {dl:.3f}')
 
     #@tf.function
     def train_step(self, lr, hr):
@@ -56,12 +63,12 @@ class Trainer(object):
 
             sr = self.generator(lr, training=True)
 
-            # plt.imshow(hr[0])
-            # plt.show()
-            # plt.imshow(lr[0])
-            # plt.show()
-            # plt.imshow(sr[0])
-            # plt.show()
+            plt.imshow(hr[0])
+            plt.show()
+            plt.imshow(lr[0])
+            plt.show()
+            plt.imshow(sr[0])
+            plt.show()
 
             hr_output = self.discriminator(hr, training=True)
             sr_output = self.discriminator(sr, training=True)
@@ -112,4 +119,4 @@ if __name__ == '__main__':
     #         print(image[0].shape)
     #         print(image[1].shape)
 
-    trainer.train(train_ds, num_steps=10000)
+    trainer.train(train_ds, num_epochs=500)

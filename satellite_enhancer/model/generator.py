@@ -9,25 +9,26 @@ import matplotlib.pyplot as plt
 
 class Generator(tf.keras.Model):
 
-    def __init__(self):
-        super(Generator, self).__init__(self)
+    def __init__(self, name='generator'):
+        super(Generator, self).__init__(name)
 
         # TODO: understand better why to use VGG convolution feature?
         self.vgg_feature = VGGFeature().output_layer()
 
         # generator structure
-        self.conv_1 = tf.keras.layers.Conv2D(64, kernel_size=9, strides=1, padding='same',
+        self.conv_1 = tf.keras.layers.Conv2D(64, kernel_size=9, strides=1, padding='same', name='conv_1',
                                              kernel_initializer=tf.random_normal_initializer(stddev=0.02))
-        self.prelu_1 = tf.keras.layers.PReLU(alpha_initializer='zeros', shared_axes=[1, 2])
+        self.prelu_1 = tf.keras.layers.PReLU(alpha_initializer='zeros', shared_axes=[1, 2], name='prelu_1')
 
-        self.res_blocks = list(map(lambda x: ResidualBlock(), range(16)))
+        self.res_blocks = list(map(lambda x: ResidualBlock(name=f'residual_{x}'), range(16)))
 
-        self.conv_2 = tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=1, padding="same")
-        self.bn_1 = tf.keras.layers.BatchNormalization(momentum=0.5)
+        self.conv_2 = tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=1, padding='same', name='conv_2')
+        self.bn_1 = tf.keras.layers.BatchNormalization(momentum=0.8, name='bn_1',)
 
-        self.upsample_blocks = list(map(lambda x: UpsampleBlock(), range(2)))
+        self.upsample_blocks = list(map(lambda x: UpsampleBlock(num_filters=256, name=f'upsample_{x}'), range(2)))
 
-        self.conv_3 = tf.keras.layers.Conv2D(filters=3, kernel_size=9, strides=1, padding="same", activation='tanh')
+        self.conv_3 = tf.keras.layers.Conv2D(filters=3, kernel_size=9, strides=1, padding="same", activation='tanh',
+                                             name='conv_3')
 
         # loss
         self.binary_crossentropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
@@ -61,7 +62,7 @@ class Generator(tf.keras.Model):
 
         # Using 2 UpSampling Blocks
         for upsample_block in self.upsample_blocks:
-            x = upsample_block(x, 256)
+            x = upsample_block(x)
             print(f'Upscale_{i}: {x.shape}')
 
         x = self.conv_3(x)
@@ -133,7 +134,6 @@ class Generator(tf.keras.Model):
         # print(np.max(sr[0].numpy()))
         # print(np.min(hr[0].numpy()))
         # print(np.min(sr[0].numpy()))
-
 
         sr_features = self.vgg_feature(sr)
         hr_features = self.vgg_feature(hr)

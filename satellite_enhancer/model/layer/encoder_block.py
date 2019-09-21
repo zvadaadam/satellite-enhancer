@@ -1,16 +1,26 @@
 import tensorflow as tf
 
 
-class EncoderBlock(tf.keras.Model):
+class EncoderBlock(tf.keras.layers.Layer):
 
-    def __init__(self):
-        super(EncoderBlock, self).__init__()
+    def __init__(self, num_filters, strides, name='encoder'):
+        super(EncoderBlock, self).__init__(name)
 
-    def call(self, inputs, num_filters=64, strides=1, batchnorm=True, training=True):
+        self.conv_1 = tf.keras.layers.Conv2D(num_filters, kernel_size=3, strides=strides, padding='same',
+                                             name='conv_1')
 
-        x = tf.keras.layers.Conv2D(num_filters, kernel_size=3, strides=strides, padding='same')(inputs)
+        self.bn_1 = tf.keras.layers.BatchNormalization(momentum=0.8)
 
-        if batchnorm:
-            x = tf.keras.layers.BatchNormalization()(x, training)
+        self.lrelu_1 = tf.keras.layers.LeakyReLU(alpha=0.2)
 
-        return tf.keras.layers.LeakyReLU(alpha=0.2)(x)
+    def call(self, inputs, bn=True, training=True):
+
+        x = self.conv_1(inputs)
+
+        if bn:
+            #x = self.bn_1(x, training)
+            x = self.bn_1(x)
+
+        x = self.lrelu_1(x)
+
+        return x

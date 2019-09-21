@@ -1,14 +1,12 @@
 import os
 import tensorflow as tf
 from itertools import product
-
 from tensorflow.python.data.experimental import AUTOTUNE
 
-class Satellite:
-    def __init__(self,
-                 scale=4,
-                 images_dir='.satellite/images'
-                 ):
+
+class SatelliteDataset:
+
+    def __init__(self, scale=4, images_dir='.satellite/images'):
 
         self.scale = scale
         self.image_ids = range(0, 51)  # 50 images
@@ -22,6 +20,7 @@ class Satellite:
         return len(self.image_ids)
 
     def dataset(self, batch_size=16, repeat_count=None, random_transform=True):
+
         ds = tf.data.Dataset.zip((self.lr_dataset(), self.hr_dataset()))
         if random_transform:
             ds = ds.map(lambda lr, hr: random_crop(lr, hr, scale=self.scale), num_parallel_calls=AUTOTUNE)
