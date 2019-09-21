@@ -6,9 +6,11 @@ from tensorflow.python.data.experimental import AUTOTUNE
 
 class Satellite:
     def __init__(self,
+                 scale=4,
                  images_dir='.satellite/images'
                  ):
 
+        self.scale = scale
         self.image_ids = range(0, 51)  # 50 images
         self.image_parts = range(0, 12)  # cut into 12 parts each
 
