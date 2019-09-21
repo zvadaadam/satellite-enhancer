@@ -82,7 +82,8 @@ class Generator(tf.keras.Model):
         :param sr_output:
         :return:
         """
-        con_loss = self.content_loss(hr, sr)
+        #con_loss = self.content_loss(hr, sr)
+        con_loss = self.pixelwise_mse(hr, sr)
         gen_loss = self.adversarial_loss(sr_output)
 
         print(f'ContentLoss: {con_loss}')
@@ -132,7 +133,7 @@ class Generator(tf.keras.Model):
         # plt.show()
         # plt.imshow(sr[0])
         # plt.show()
-        #
+
         # print(np.max(hr[0].numpy()))
         # print(np.max(sr[0].numpy()))
         # print(np.min(hr[0].numpy()))
@@ -143,20 +144,32 @@ class Generator(tf.keras.Model):
 
         return self.mse(hr_features, sr_features) / 12.75
 
-    # def cMSE(hr, sr):
-    #
-    #     # apply the quality mask
-    #     obs = tf.equal(hr, 0.05)
-    #     clr = tf.math.logical_not(obs)
-    #     _hr = tf.boolean_mask(hr, clr)
-    #     _sr = tf.boolean_mask(sr, clr)
-    #
-    #     # calculate the bias in brightness b
-    #     pixel_diff = _hr - _sr
-    #     b = K.mean(pixel_diff)
-    #
-    #     # calculate the corrected clear mean-square error
-    #     pixel_diff -= b
-    #     cMse = K.mean(pixel_diff * pixel_diff)
-    #
-    #     return cMse
+    def pixelwise_mse(self, hr, sr):
+
+        lr_size = 32
+
+        pixel_diff = tf.subtract(hr, sr)
+
+        pixel_mse = tf.reduce_sum(tf.square(pixel_diff))/16*lr_size*lr_size
+
+        return pixel_mse
+
+
+
+    def c_mse(self, hr, sr):
+
+        # apply the quality mask
+        obs = tf.equal(hr, 0.05)
+        clr = tf.math.logical_not(obs)
+        _hr = tf.boolean_mask(hr, clr)
+        _sr = tf.boolean_mask(sr, clr)
+
+        # calculate the bias in brightness b
+        pixel_diff = _hr - _sr
+        b = tf.keras.mean(pixel_diff)
+
+        # calculate the corrected clear mean-square error
+        pixel_diff -= b
+        cMse = tf.mean(pixel_diff * pixel_diff)
+
+        return cMse
