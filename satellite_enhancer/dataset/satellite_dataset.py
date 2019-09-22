@@ -41,11 +41,18 @@ class SatelliteDataset:
 
     def _hr_image_files(self):
         images_dir = self._hr_images_dir()
-        return [os.path.join(images_dir, f'tile1-{image_id}.jpg') for (image_id, image_part) in product(self.image_ids, self.image_parts)]
+
+        tile_names = os.listdir(images_dir)
+
+        return [os.path.join(images_dir, tile_name) for tile_name in tile_names]
 
     def _lr_image_files(self):
         images_dir = self._lr_images_dir()
-        return [os.path.join(images_dir, f'tile1-{image_id}.jpg') for (image_id, image_part) in product(self.image_ids, self.image_parts)]
+
+        tile_names = os.listdir(images_dir)
+
+        return [os.path.join(images_dir, tile_name) for tile_name in tile_names]
+        #return [os.path.join(images_dir, f'tile1-{image_id}.jpg') for (image_id, image_part) in product(self.image_ids, self.image_parts)]
 
     def _hr_images_dir(self):
         return os.path.join(self.images_dir, 'HR')

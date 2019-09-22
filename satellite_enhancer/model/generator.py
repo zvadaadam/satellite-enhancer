@@ -49,28 +49,22 @@ class Generator(tf.keras.Model):
 
         x = self.conv_1(inputs)
         x = self.prelu_1(x)
-        print(x.shape)
 
         skip_res_x = x
 
         for i, res_block in enumerate(self.res_blocks):
             x = res_block(x, training)
-            print(f'Res_{i}: {x.shape}')
 
         x = self.conv_2(x)
         x = self.bn_1(x)
 
         x = tf.keras.layers.add([x, skip_res_x])
-        print(x.shape)
 
         # Using 2 UpSampling Blocks
         for upsample_block in self.upsample_blocks:
             x = upsample_block(x)
-            print(f'Upscale_{i}: {x.shape}')
 
         x = self.conv_3(x)
-
-        print(f'Finale: {x.shape}')
 
         return x
 
@@ -153,8 +147,6 @@ class Generator(tf.keras.Model):
         pixel_mse = tf.reduce_sum(tf.square(pixel_diff))/16*lr_size*lr_size
 
         return pixel_mse
-
-
 
     def c_mse(self, hr, sr):
 

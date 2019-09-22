@@ -11,11 +11,14 @@ class Trainer(object):
     def __init__(self, generator: Generator, discriminator: Discriminator):
 
         self.generator = generator
+        self.generator.load_weights('../trained_models/generator/gen_1')
+
         self.discriminator = discriminator
+        self.discriminator.load_weights('../trained_models/discriminator/disc_1')
 
         # discriminator should learn then generator
-        self.generator_optimizer = tf.keras.optimizers.Adam(lr=1e-4, clipvalue=1.0, decay=1e-8)
-        self.discriminator_optimizer = tf.keras.optimizers.Adam(lr=1e-3, clipvalue=1.0, decay=1e-8)
+        self.generator_optimizer = tf.keras.optimizers.Adam(lr=1e-4)
+        self.discriminator_optimizer = tf.keras.optimizers.Adam(lr=1e-6)
 
         self.summary_writer = tf.summary.create_file_writer(os.path.join('summaries', 'train'))
 
@@ -37,11 +40,12 @@ class Trainer(object):
         with self.summary_writer.as_default():
 
             for epoch in range(num_epochs):
+                print(f'EPOCHE: {epoch}')
+
                 pl, dl = 0, 0
                 num_setps = 0
-                for lr, hr in train_dataset.take(1):
-                    print(f'EPOCHE: {epoch}')
-
+                for lr, hr in train_dataset.take(50):
+                    print(f'{num_setps}/{epoch}')
                     num_setps += 1
 
                     p_l, d_l = self.train_step(lr, hr)
@@ -54,6 +58,9 @@ class Trainer(object):
 
                 print(f'{epoch}/{num_epochs}, perceptual loss = {pl:.3f}, discriminator loss = {dl:.3f}')
 
+                self.generator.save_weights('../trained_models/generator/gen_1', save_format='tf')
+                self.discriminator.save_weights('../trained_models/discriminator/disc_1', save_format='tf')
+
     #@tf.function
     def train_step(self, lr, hr):
 
@@ -63,16 +70,18 @@ class Trainer(object):
             hr = self.normalize(hr)
 
             sr = self.generator(lr, training=True)
+            #self.generator.summary()
 
-            plt.imshow(self.denormalize(hr[0]))
-            plt.show()
-            # plt.imshow(self.denormalize(lr[0]))
+            # plt.imshow(self.denormalize(hr[0]))
             # plt.show()
-            plt.imshow(self.denormalize(sr[0]))
-            plt.show()
+            # # plt.imshow(self.denormalize(lr[0]))
+            # # plt.show()
+            # plt.imshow(self.denormalize(sr[0]))
+            # plt.show()
 
             hr_output = self.discriminator(hr, training=True)
             sr_output = self.discriminator(sr, training=True)
+            #self.discriminator.summary()
 
             print(f'HR_disc: {hr_output.numpy()}')
             print(f'SR_disc: {sr_output.numpy()}')
@@ -112,9 +121,12 @@ class Trainer(object):
 if __name__ == '__main__':
 
     from satellite_enhancer.dataset.divk2_dataset import DIV2K
-    div2k_train = DIV2K(scale=4, subset='train', downgrade='bicubic')
+    from satellite_enhancer.dataset.satellite_dataset import SatelliteDataset
 
-    train_ds = div2k_train.dataset(batch_size=16, random_transform=True)
+    #div2k_train = DIV2K(scale=4, subset='train', downgrade='bicubic')
+    satelitte_train = SatelliteDataset(scale=4, images_dir='.satellite/images')
+
+    train_ds = satelitte_train.dataset(batch_size=16, random_transform=True)
 
     trainer = Trainer(Generator(), Discriminator())
 

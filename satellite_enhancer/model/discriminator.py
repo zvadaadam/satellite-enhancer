@@ -57,8 +57,7 @@ class Discriminator(tf.keras.Model):
         x = self.dense_1(x)
         x = self.lrelu_2(x)
 
-        # One dropout layer - trick!
-        x = self.dropout(x)
+        #x = self.dropout(x)
 
         x = self.dense_2(x)
 
