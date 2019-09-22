@@ -22,16 +22,6 @@ class Trainer(object):
 
         self.summary_writer = tf.summary.create_file_writer(os.path.join('summaries', 'train'))
 
-        # self.checkpoint = tf.train.Checkpoint(step=tf.Variable(0),
-        #                                       psnr=tf.Variable(-1.0),
-        #                                       optimizer=Adam(learning_rate),
-        #                                       model=model)
-        # self.checkpoint_manager = tf.train.CheckpointManager(checkpoint=self.checkpoint,
-        #                                                      directory=checkpoint_dir,
-        #                                                      max_to_keep=3)
-
-        #self.restore()
-
     def high_level_train(self):
         pass
 
@@ -87,7 +77,6 @@ class Trainer(object):
             print(f'SR_disc: {sr_output.numpy()}')
 
             perc_loss = self.generator.loss(hr, sr, sr_output)
-
             disc_loss = self.discriminator.loss(hr_output, sr_output)
 
         gradients_of_generator = gen_tape.gradient(perc_loss, self.generator.trainable_variables)
