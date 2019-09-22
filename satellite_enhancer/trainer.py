@@ -1,3 +1,9 @@
+import os
+print(os.listdir('./../'))
+import sys
+sys.path.append('./../')
+
+import argparse
 import tensorflow as tf
 import numpy as np
 import os
@@ -17,8 +23,8 @@ class Trainer(object):
         self.discriminator.load_weights('../trained_models/discriminator/disc_1')
 
         # discriminator should learn then generator
-        self.generator_optimizer = tf.keras.optimizers.Adam(lr=1e-4)
-        self.discriminator_optimizer = tf.keras.optimizers.Adam(lr=1e-6)
+        self.generator_optimizer = tf.keras.optimizers.Adam(lr=1e-3)
+        self.discriminator_optimizer = tf.keras.optimizers.Adam(lr=1e-5)
 
         self.summary_writer = tf.summary.create_file_writer(os.path.join('summaries', 'train'))
 
@@ -34,7 +40,7 @@ class Trainer(object):
 
                 pl, dl = 0, 0
                 num_setps = 0
-                for lr, hr in train_dataset.take(50):
+                for lr, hr in train_dataset.take(600):
                     print(f'{num_setps}/{epoch}')
                     num_setps += 1
 
@@ -48,8 +54,8 @@ class Trainer(object):
 
                 print(f'{epoch}/{num_epochs}, perceptual loss = {pl:.3f}, discriminator loss = {dl:.3f}')
 
-                self.generator.save_weights('../trained_models/generator/gen_1', save_format='tf')
-                self.discriminator.save_weights('../trained_models/discriminator/disc_1', save_format='tf')
+                self.generator.save_weights('../trained_models/generator/gen_2', save_format='tf')
+                self.discriminator.save_weights('../trained_models/discriminator/disc_2', save_format='tf')
 
     #@tf.function
     def train_step(self, lr, hr):
@@ -106,6 +112,7 @@ class Trainer(object):
     def denormalize(self, img):
         # return tf.divide(tf.add(img, 1), 2.)
         return tf.cast(tf.multiply(tf.add(img, 1), 127.5), dtype=tf.uint32)
+
 
 if __name__ == '__main__':
 
