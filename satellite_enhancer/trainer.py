@@ -106,7 +106,7 @@ class Trainer(object):
     def flip_labels(self, label, prob=0.05):
         pass
 
-    def normalize(sel, img):
+    def normalize(self, img):
         """Normalize image to [-1,1]"""
 
         img = tf.cast(img, tf.float32)/127.5 - tf.ones_like(img, dtype=np.float32)
