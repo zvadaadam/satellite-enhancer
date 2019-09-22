@@ -1,5 +1,7 @@
 import sys
-sys.path.append('./../../')
+import os
+print(os.listdir('./satelliate-enhancer/'))
+sys.path.append('./satelliate-enhancer/')
 
 import argparse
 import os

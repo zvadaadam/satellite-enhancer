@@ -17,10 +17,10 @@ class Trainer(object):
     def __init__(self, generator: Generator, discriminator: Discriminator):
 
         self.generator = generator
-        self.generator.load_weights('../trained_models/generator/gen_1')
+        #self.generator.load_weights('../trained_models/generator/gen_1')
 
         self.discriminator = discriminator
-        self.discriminator.load_weights('../trained_models/discriminator/disc_1')
+        #self.discriminator.load_weights('../trained_models/discriminator/disc_1')
 
         # discriminator should learn then generator
         self.generator_optimizer = tf.keras.optimizers.Adam(lr=1e-3)
@@ -54,8 +54,10 @@ class Trainer(object):
 
                 print(f'{epoch}/{num_epochs}, perceptual loss = {pl:.3f}, discriminator loss = {dl:.3f}')
 
-                self.generator.save_weights('../trained_models/generator/gen_2', save_format='tf')
-                self.discriminator.save_weights('../trained_models/discriminator/disc_2', save_format='tf')
+                #self.generator.save_weights('../trained_models/generator/gen_2', save_format='tf')
+                #self.discriminator.save_weights('../trained_models/discriminator/disc_2', save_format='tf')
+                self.generator.save_weights('gen_2', save_format='tf')
+                self.discriminator.save_weights('disc_2', save_format='tf')
 
     #@tf.function
     def train_step(self, lr, hr):
